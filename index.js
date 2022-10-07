@@ -1,11 +1,33 @@
 const fs = require('node:fs')
 const path = require('node:path')
+const { createServer } = require('http')
+const { Server } = require('socket.io')
 const { Client, Collection } = require('discord.js')
 const express = require('express')
 const mongoose = require('mongoose')
+const cors = require('cors')
+const bodyParser = require('body-parser')
+const appRoutes = require('./router/routes')
 const { token, mongodbConnString, intents } = require('./config/config')
 const messageCreate = require('./handlers/messageCreate')
 const interactionCreate = require('./handlers/interactionCreate')
+
+const app = express()
+const server = createServer(app)
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+    }
+})
+const PORT = process.env.PORT || 5000;
+
+app.use(cors({
+    origin: '*'
+}))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
+
 
 const client  = new Client({ intents })
 
@@ -21,24 +43,33 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', async (client) => {
-    console.log('Bot is ready!!');
+    console.log(`Bot is ready!! ${client.commands.size} commands available.`);
 })
 
 client.on('messageCreate', messageCreate)
 
+// io.on('connection', socket => {
+//     console.log('Socket connected.')
+//     socket.broadcast.emit('test', 'confirmed!')
+//     client.on('messageCreate', async message => {
+//         await messageCreate(message, socket)
+//     })  
+// })
+
 client.on('interactionCreate', interactionCreate)
 
 
-const app = express()
-const PORT = process.env.PORT || 5000;
+app.use('/api/v1', appRoutes)
+
+app.use((err, req, res, next) => {
+    if (!err) return;
+
+    console.log(`Error: ${err?.message ?? err}`)
+    res.status(500).json({message: 'Something broke'})
+})
 
 mongoose.connect(mongodbConnString).then(() => {
-    app.listen(PORT, (err) => {
-        if (err) {
-            console.log({message: err?.message, err})
-            return;
-        }
-        console.log(`Server is running on port ${PORT}`)
-        client.login(token)
-    })
+    server.listen(PORT)
+    console.log(`Server is running on port ${PORT}`)
+    client.login(token)
 }).catch(error => console.log(error?.message ?? error))

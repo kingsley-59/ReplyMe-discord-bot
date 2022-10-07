@@ -19,9 +19,10 @@ const TagsSchema = mongoose.Schema(
             required: true
         },
 
+        fullname: String,
+
         createdAt: {
             type: Date,
-            default: new Date()
         },
 
         tagged: {

@@ -20,11 +20,12 @@ const MessagesSchema = mongoose.Schema(
             required: true
         },
 
+        fullname: String,
+
         content: String,
 
         createdAt: {
             type: Date,
-            default: new Date()
         },
 
         mentions: [
@@ -35,12 +36,12 @@ const MessagesSchema = mongoose.Schema(
         ],
 
         issueAuthor: String,
+        issuerFullname: String,
         issueId: String,
         issueContent: String,
 
         issueCreatedAt: {
             type: Date,
-            default: new Date()
         },
 
         issueMentions: [
