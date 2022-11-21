@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Messages = require('../models/messages')
 const Tags = require('../models/tags')
 const { Message } = require('discord.js')
-const { Socket } = require('socket.io')
+const { Socket } = require('socket.io');
+const TimeDifference = require('../helpers/time');
 
 
 /**
@@ -27,7 +28,7 @@ const messageCreate = async (message, socket) => {
     if (message.mentions.users.size > 0) {
         let users = Array.from(message.mentions.users.values())
         users.map(user => {
-            if (!user.bot && user.id !== message.mentions.repliedUser?.id && user.id !== author) mentions.push(user.id)
+            if (!user.bot && user.id !== message.mentions.repliedUser?.id && user.id !== author) mentions.push(user)
         })
     }
 
@@ -42,7 +43,7 @@ const messageCreate = async (message, socket) => {
         issuerFullname = issue.author.username + issue.author.discriminator
         issueId = issue.id
         issueContent = issue.content
-        issueCreatedAt = issue?.createdAt || new Date()
+        issueCreatedAt = issue.createdAt
         if (issue.mentions.users.size > 0) {
             Array.from(issue.mentions.users.values()).map(user => {
                 if (!user.bot) issueMentions.push(user.id)
@@ -52,7 +53,7 @@ const messageCreate = async (message, socket) => {
 
     if (!issueAuthor && mentions.length == 0) return;
 
-    message.channel.send('Noted!')
+    // message.channel.send('Noted!')
 
     try {
         // save if message has mentions
@@ -63,11 +64,12 @@ const messageCreate = async (message, socket) => {
                     messageId,
                     author,
                     fullname,
+                    content,
                     createdAt: new Date(),
-                    tagged: user
+                    tagged: user.id,
+                    taggedUserFullname: `${user.username}${user.discriminator}`
                 }
             })
-            console.log(taggedUsers)
             let tags = await Tags.insertMany(taggedUsers)
             // socket.broadcast.emit('new-tags', tags)
             console.log(`Added ${tags.length} tags to the db.`)
@@ -84,10 +86,13 @@ const messageCreate = async (message, socket) => {
             // socket.broadcast.emit('tags-update', {messageId})
             console.log(`Updated tag entry with messageId - ${tagUpdate.messageId}`)
         }
-        
+
+        const timeDifference = new TimeDifference(issueCreatedAt, createdAt)
+        const delayInMillis = timeDifference.differenceInMilliseconds
+        const delay = timeDifference.convertMillisToTime(delayInMillis)
         const message = new Messages({
             _id: new mongoose.Types.ObjectId(),
-            author, fullname, messageId, content, createdAt, mentions, createdAt: new Date(),
+            author, fullname, messageId, content, createdAt, mentions, delay, delayInMillis,
             issueAuthor, issuerFullname, issueId, issueContent, issueCreatedAt, issueMentions
         })
         const result = await message.save()

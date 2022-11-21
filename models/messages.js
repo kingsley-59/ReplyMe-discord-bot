@@ -28,12 +28,7 @@ const MessagesSchema = mongoose.Schema(
             type: Date,
         },
 
-        mentions: [
-            {
-                type: String,
-                ref: 'User'
-            }
-        ],
+        mentions: [Object],
 
         issueAuthor: String,
         issuerFullname: String,
@@ -49,7 +44,11 @@ const MessagesSchema = mongoose.Schema(
                 type: String,
                 ref: 'User'
             }
-        ]
+        ],
+
+        delay: String,
+
+        delayInMillis: Number,
     },
     { timestamps: true }
 )

@@ -9,9 +9,11 @@ const UserSchema = mongoose.Schema(
 
         username: String,
 
-        discriminator: String
+        discriminator: String,
+
+        avatar: String | null
     },
     { timestamps: true }
 )
 
-module.exports = mongoose.model('User', UserSchema)
+module.exports = mongoose.model('Members', UserSchema)

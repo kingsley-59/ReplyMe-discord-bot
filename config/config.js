@@ -7,6 +7,7 @@ module.exports = {
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers,
         GatewayIntentBits.DirectMessages,
         GatewayIntentBits.MessageContent
     ],

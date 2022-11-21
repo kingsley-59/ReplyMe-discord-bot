@@ -21,6 +21,8 @@ const TagsSchema = mongoose.Schema(
 
         fullname: String,
 
+        content: String,
+
         createdAt: {
             type: Date,
         },
@@ -29,6 +31,8 @@ const TagsSchema = mongoose.Schema(
             type: String,
             ref: 'User',
         },
+
+        taggedUserFullname: String,
 
         hasReplied: {
             type: Boolean,

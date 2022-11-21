@@ -11,6 +11,7 @@ const appRoutes = require('./router/routes')
 const { token, mongodbConnString, intents } = require('./config/config')
 const messageCreate = require('./handlers/messageCreate')
 const interactionCreate = require('./handlers/interactionCreate')
+const memberController = require('./controllers/memberController')
 
 const app = express()
 const server = createServer(app)
@@ -26,10 +27,10 @@ app.use(cors({
     origin: '*'
 }))
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({ extended: true }))
 
 
-const client  = new Client({ intents })
+const client = new Client({ intents })
 
 client.commands = new Collection()
 const commandsPath = path.join(__dirname, 'commands')
@@ -43,7 +44,18 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', async (client) => {
+    const Guilds = client.guilds.cache.map(guild => guild)
     console.log(`Bot is ready!! ${client.commands.size} commands available.`);
+    let members = []
+    for (let guild of Guilds) {
+        console.log('fetching users...')
+        const guildMembers = await guild.members.fetch()
+        const memberArr = guildMembers.map(member => member.user)
+        members = [...members, ...memberArr]
+    }
+    for (let member of members) {
+        await memberController.confirmAndSaveUser(member)
+    }
 })
 
 client.on('messageCreate', messageCreate)
@@ -65,7 +77,7 @@ app.use((err, req, res, next) => {
     if (!err) return;
 
     console.log(`Error: ${err?.message ?? err}`)
-    res.status(500).json({message: 'Something broke'})
+    res.status(500).json({ message: 'Something broke' })
 })
 
 mongoose.connect(mongodbConnString).then(() => {
