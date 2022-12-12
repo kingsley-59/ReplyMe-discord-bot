@@ -14,5 +14,6 @@ module.exports = {
     clientId: process.env.DISCORD_APP_ID,
     token: process.env.DISCORD_BOT_TOKEN,
     guildId: process.env.DISCORD_GUILD_ID,
-    mongodbConnString: process.env.NODE_ENV === 'production' ? process.env.DATABASE_URL : developmentDatabase 
+    // mongodbConnString: process.env.NODE_ENV === 'production' ? process.env.DATABASE_URL : developmentDatabase 
+    mongodbConnString: developmentDatabase
 }
